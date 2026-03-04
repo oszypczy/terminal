@@ -91,4 +91,51 @@ class TerminalBufferTest {
         buf.write("")
         assertThat(buf.cursorCol).isEqualTo(0)
     }
+
+    @Test
+    fun `insert text shifts content right`() {
+        val buf = TerminalBuffer(10, 3)
+        buf.write("Hello")
+        buf.setCursorPosition(2, 0)
+        buf.insert("XY")
+        assertThat(buf.getLine(0)).isEqualTo("HeXYllo")
+        assertThat(buf.cursorCol).isEqualTo(4)
+    }
+
+    @Test
+    fun `insert truncates at right edge`() {
+        val buf = TerminalBuffer(5, 3)
+        buf.write("ABCDE")
+        buf.setCursorPosition(2, 0)
+        buf.insert("XY")
+        assertThat(buf.getLine(0)).isEqualTo("ABXYC")
+        assertThat(buf.cursorCol).isEqualTo(4)
+    }
+
+    @Test
+    fun `fill line with character`() {
+        val buf = TerminalBuffer(5, 3)
+        buf.setCursorPosition(0, 1)
+        buf.currentStyle = TextStyle(foreground = TerminalColor.GREEN)
+        buf.fill('=')
+        assertThat(buf.getLine(1)).isEqualTo("=====")
+        assertThat(buf.getStyleAt(0, 1).foreground).isEqualTo(TerminalColor.GREEN)
+    }
+
+    @Test
+    fun `fill does not move cursor`() {
+        val buf = TerminalBuffer(5, 3)
+        buf.setCursorPosition(3, 1)
+        buf.fill('-')
+        assertThat(buf.cursorCol).isEqualTo(3)
+        assertThat(buf.cursorRow).isEqualTo(1)
+    }
+
+    @Test
+    fun `fill with space clears line`() {
+        val buf = TerminalBuffer(5, 3)
+        buf.write("Hello")
+        buf.fill(' ')
+        assertThat(buf.getLine(0)).isEqualTo("")
+    }
 }

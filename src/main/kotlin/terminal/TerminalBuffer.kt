@@ -45,6 +45,17 @@ class TerminalBuffer(
         }
     }
 
+    fun insert(text: String) {
+        if (text.isEmpty()) return
+        val line = screen[cursor.row]
+        line.insertChars(cursor.col, text, currentStyle)
+        cursor.col = (cursor.col + text.length).coerceAtMost(width - 1)
+    }
+
+    fun fill(char: Char) {
+        screen[cursor.row].fill(char, currentStyle)
+    }
+
     fun getLine(row: Int): String {
         return if (row in 0 until height) {
             screen[row].toString()

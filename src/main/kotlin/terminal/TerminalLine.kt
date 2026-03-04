@@ -21,6 +21,25 @@ class TerminalLine(val width: Int) {
         widths.fill(1)
     }
 
+    fun insertChars(col: Int, text: String, style: TextStyle) {
+        if (col >= width || text.isEmpty()) return
+        val insertLen = text.length.coerceAtMost(width - col)
+        // Shift existing content right
+        val shiftEnd = width - 1
+        val shiftStart = col + insertLen
+        for (i in shiftEnd downTo shiftStart) {
+            chars[i] = chars[i - insertLen]
+            styles[i] = styles[i - insertLen]
+            widths[i] = widths[i - insertLen]
+        }
+        // Insert new characters
+        for (i in 0 until insertLen) {
+            chars[col + i] = text[i]
+            styles[col + i] = style.packed
+            widths[col + i] = 1
+        }
+    }
+
     fun fill(char: Char, style: TextStyle) {
         chars.fill(char)
         styles.fill(style.packed)
