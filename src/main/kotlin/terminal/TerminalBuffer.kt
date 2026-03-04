@@ -18,6 +18,62 @@ class TerminalBuffer(
         cursor.row = row.coerceIn(0, height - 1)
     }
 
+    fun moveCursorRight(n: Int) {
+        cursor.col = (cursor.col + n).coerceAtMost(width - 1)
+    }
+
+    fun moveCursorLeft(n: Int) {
+        cursor.col = (cursor.col - n).coerceAtLeast(0)
+    }
+
+    fun moveCursorDown(n: Int) {
+        cursor.row = (cursor.row + n).coerceAtMost(height - 1)
+    }
+
+    fun moveCursorUp(n: Int) {
+        cursor.row = (cursor.row - n).coerceAtLeast(0)
+    }
+
+    fun write(text: String) {
+        if (text.isEmpty()) return
+        val line = screen[cursor.row]
+        for (char in text) {
+            if (cursor.col >= width) break
+            line.setChar(cursor.col, char, currentStyle)
+            if (cursor.col == width - 1) break
+            cursor.col++
+        }
+    }
+
+    fun getLine(row: Int): String {
+        return if (row in 0 until height) {
+            screen[row].toString()
+        } else if (row < 0) {
+            val scrollbackIndex = scrollback.size + row
+            if (scrollbackIndex in scrollback.indices) scrollback[scrollbackIndex].toString()
+            else ""
+        } else ""
+    }
+
+    fun getCharAt(col: Int, row: Int): Char {
+        val line = getTerminalLine(row) ?: return ' '
+        return if (col in 0 until line.width) line.charAt(col) else ' '
+    }
+
+    fun getStyleAt(col: Int, row: Int): TextStyle {
+        val line = getTerminalLine(row) ?: return TextStyle.DEFAULT
+        return if (col in 0 until line.width) line.styleAt(col) else TextStyle.DEFAULT
+    }
+
+    private fun getTerminalLine(row: Int): TerminalLine? {
+        return if (row in 0 until height) {
+            screen[row]
+        } else if (row < 0) {
+            val scrollbackIndex = scrollback.size + row
+            if (scrollbackIndex in scrollback.indices) scrollback[scrollbackIndex] else null
+        } else null
+    }
+
     fun getScreenContent(): String {
         return screen.joinToString("\n") { it.toString() }
     }

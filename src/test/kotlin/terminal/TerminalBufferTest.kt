@@ -48,4 +48,47 @@ class TerminalBufferTest {
         val buf = TerminalBuffer(5, 3)
         assertThat(buf.getScreenContent()).isEqualTo("\n\n")
     }
+
+    @Test
+    fun `write text at cursor position`() {
+        val buf = TerminalBuffer(10, 3)
+        buf.write("Hello")
+        assertThat(buf.getLine(0)).isEqualTo("Hello")
+        assertThat(buf.cursorCol).isEqualTo(5)
+        assertThat(buf.cursorRow).isEqualTo(0)
+    }
+
+    @Test
+    fun `write uses current style`() {
+        val buf = TerminalBuffer(10, 3)
+        buf.currentStyle = TextStyle(bold = true, foreground = TerminalColor.RED)
+        buf.write("Hi")
+        assertThat(buf.getStyleAt(0, 0).bold).isTrue()
+        assertThat(buf.getStyleAt(0, 0).foreground).isEqualTo(TerminalColor.RED)
+        assertThat(buf.getStyleAt(1, 0).bold).isTrue()
+    }
+
+    @Test
+    fun `write stops at right edge`() {
+        val buf = TerminalBuffer(5, 3)
+        buf.write("HelloWorld")
+        assertThat(buf.getLine(0)).isEqualTo("Hello")
+        assertThat(buf.cursorCol).isEqualTo(4)
+    }
+
+    @Test
+    fun `write at middle of line overwrites`() {
+        val buf = TerminalBuffer(10, 3)
+        buf.write("HelloWorld")
+        buf.setCursorPosition(5, 0)
+        buf.write("XY")
+        assertThat(buf.getLine(0)).isEqualTo("HelloXYrld")
+    }
+
+    @Test
+    fun `write empty string does nothing`() {
+        val buf = TerminalBuffer(10, 3)
+        buf.write("")
+        assertThat(buf.cursorCol).isEqualTo(0)
+    }
 }
