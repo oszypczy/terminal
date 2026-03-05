@@ -4,7 +4,6 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 
 class ResizeTest {
-
     @Test
     fun `grow width pads lines`() {
         val buf = TerminalBuffer(5, 3)

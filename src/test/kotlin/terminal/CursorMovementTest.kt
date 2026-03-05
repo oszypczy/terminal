@@ -4,7 +4,6 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 
 class CursorMovementTest {
-
     @Test
     fun `move cursor right`() {
         val buf = TerminalBuffer(10, 5)

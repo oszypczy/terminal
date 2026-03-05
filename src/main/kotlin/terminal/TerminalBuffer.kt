@@ -3,7 +3,7 @@ package terminal
 class TerminalBuffer(
     var width: Int,
     var height: Int,
-    val maxScrollbackSize: Int = 1000
+    val maxScrollbackSize: Int = 1000,
 ) {
     private val screen: MutableList<TerminalLine> = MutableList(height) { TerminalLine(width) }
     private val scrollback: ArrayDeque<TerminalLine> = ArrayDeque()
@@ -13,15 +13,21 @@ class TerminalBuffer(
     val cursorCol: Int get() = cursor.col
     val cursorRow: Int get() = cursor.row
 
-    fun setCursorPosition(col: Int, row: Int) {
+    fun setCursorPosition(
+        col: Int,
+        row: Int,
+    ) {
         cursor.col = col
         cursor.row = row
         cursor.clamp(width - 1, height - 1)
     }
 
     fun moveCursorRight(n: Int) = cursor.moveRight(n, width - 1)
+
     fun moveCursorLeft(n: Int) = cursor.moveLeft(n)
+
     fun moveCursorDown(n: Int) = cursor.moveDown(n, height - 1)
+
     fun moveCursorUp(n: Int) = cursor.moveUp(n)
 
     fun write(text: String) {
@@ -40,7 +46,10 @@ class TerminalBuffer(
                     line.setChar(cursor.col + 1, '\u0000', currentStyle, width = 0)
                 }
                 cursor.col += 2
-                if (cursor.col >= width) { cursor.col = width - 1; break }
+                if (cursor.col >= width) {
+                    cursor.col = width - 1
+                    break
+                }
             } else {
                 line.setChar(cursor.col, char, currentStyle, width = 1)
                 if (cursor.col == width - 1) break
@@ -49,7 +58,10 @@ class TerminalBuffer(
         }
     }
 
-    private fun clearWideCharAt(line: TerminalLine, col: Int) {
+    private fun clearWideCharAt(
+        line: TerminalLine,
+        col: Int,
+    ) {
         if (col > 0 && line.widthAt(col) == 0) {
             line.setChar(col - 1, ' ', TextStyle.DEFAULT, width = 1)
             line.setChar(col, ' ', TextStyle.DEFAULT, width = 1)
@@ -75,17 +87,28 @@ class TerminalBuffer(
             screen[row].toString()
         } else if (row < 0) {
             val scrollbackIndex = scrollback.size + row
-            if (scrollbackIndex in scrollback.indices) scrollback[scrollbackIndex].toString()
-            else ""
-        } else ""
+            if (scrollbackIndex in scrollback.indices) {
+                scrollback[scrollbackIndex].toString()
+            } else {
+                ""
+            }
+        } else {
+            ""
+        }
     }
 
-    fun getCharAt(col: Int, row: Int): Char {
+    fun getCharAt(
+        col: Int,
+        row: Int,
+    ): Char {
         val line = getTerminalLine(row) ?: return ' '
         return if (col in 0 until line.width) line.charAt(col) else ' '
     }
 
-    fun getStyleAt(col: Int, row: Int): TextStyle {
+    fun getStyleAt(
+        col: Int,
+        row: Int,
+    ): TextStyle {
         val line = getTerminalLine(row) ?: return TextStyle.DEFAULT
         return if (col in 0 until line.width) line.styleAt(col) else TextStyle.DEFAULT
     }
@@ -96,7 +119,9 @@ class TerminalBuffer(
         } else if (row < 0) {
             val scrollbackIndex = scrollback.size + row
             if (scrollbackIndex in scrollback.indices) scrollback[scrollbackIndex] else null
-        } else null
+        } else {
+            null
+        }
     }
 
     val scrollbackSize: Int get() = scrollback.size
@@ -128,7 +153,10 @@ class TerminalBuffer(
         scrollback.clear()
     }
 
-    fun resize(newWidth: Int, newHeight: Int) {
+    fun resize(
+        newWidth: Int,
+        newHeight: Int,
+    ) {
         // Resize width of all lines
         if (newWidth != width) {
             for (i in screen.indices) {
@@ -175,18 +203,37 @@ class TerminalBuffer(
     }
 }
 
+private const val FIRST_CJK_RADICAL = 0x2E80
+private const val LAST_IDC = 0x303F
+private const val FIRST_HIRAGANA = 0x3040
+private const val LAST_KATAKANA = 0x30FF
+private const val FIRST_BOPOMOFO = 0x3100
+private const val LAST_BOPOMOFO = 0x312F
+private const val FIRST_CJK_EXTENSION_A = 0x3400
+private const val LAST_CJK_EXTENSION_A = 0x4DBF
+private const val FIRST_CJK_UNIFIED = 0x4E00
+private const val LAST_CJK_UNIFIED = 0x9FFF
+private const val FIRST_HANGUL_SYLLABLE = 0xAC00
+private const val LAST_HANGUL_SYLLABLE = 0xD7AF
+private const val FIRST_CJK_COMPATIBILITY = 0xF900
+private const val LAST_CJK_COMPATIBILITY = 0xFAFF
+private const val FIRST_FULLWIDTH_FORM = 0xFF01
+private const val LAST_FULLWIDTH_FORM = 0xFF60
+private const val FIRST_FULLWIDTH_SIGN = 0xFFE0
+private const val LAST_FULLWIDTH_SIGN = 0xFFE6
+
 fun charDisplayWidth(c: Char): Int {
     val code = c.code
     return when {
-        code in 0x4E00..0x9FFF -> 2   // CJK Unified Ideographs
-        code in 0x3400..0x4DBF -> 2   // CJK Extension A
-        code in 0xF900..0xFAFF -> 2   // CJK Compatibility Ideographs
-        code in 0xFF01..0xFF60 -> 2   // Fullwidth Forms
-        code in 0xFFE0..0xFFE6 -> 2   // Fullwidth Signs
-        code in 0x2E80..0x303F -> 2   // CJK Radicals, Kangxi, IDC
-        code in 0xAC00..0xD7AF -> 2   // Hangul Syllables
-        code in 0x3040..0x30FF -> 2   // Hiragana, Katakana
-        code in 0x3100..0x312F -> 2   // Bopomofo
+        code in FIRST_CJK_UNIFIED..LAST_CJK_UNIFIED -> 2
+        code in FIRST_CJK_EXTENSION_A..LAST_CJK_EXTENSION_A -> 2
+        code in FIRST_CJK_COMPATIBILITY..LAST_CJK_COMPATIBILITY -> 2
+        code in FIRST_FULLWIDTH_FORM..LAST_FULLWIDTH_FORM -> 2
+        code in FIRST_FULLWIDTH_SIGN..LAST_FULLWIDTH_SIGN -> 2
+        code in FIRST_CJK_RADICAL..LAST_IDC -> 2
+        code in FIRST_HANGUL_SYLLABLE..LAST_HANGUL_SYLLABLE -> 2
+        code in FIRST_HIRAGANA..LAST_KATAKANA -> 2
+        code in FIRST_BOPOMOFO..LAST_BOPOMOFO -> 2
         else -> 1
     }
 }

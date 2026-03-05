@@ -4,7 +4,6 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 
 class WideCharacterTest {
-
     @Test
     fun `write wide character occupies two cells`() {
         val buf = TerminalBuffer(10, 3)

@@ -4,7 +4,6 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 
 class TerminalLineTest {
-
     @Test
     fun `new line is filled with spaces and default style`() {
         val line = TerminalLine(10)

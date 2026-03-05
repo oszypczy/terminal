@@ -6,10 +6,17 @@ class TerminalLine(val width: Int) {
     internal val widths = ByteArray(width) { 1 }
 
     fun charAt(col: Int): Char = chars[col]
+
     fun styleAt(col: Int): TextStyle = TextStyle(styles[col])
+
     fun widthAt(col: Int): Int = widths[col].toInt()
 
-    fun setChar(col: Int, char: Char, style: TextStyle, width: Int = 1) {
+    fun setChar(
+        col: Int,
+        char: Char,
+        style: TextStyle,
+        width: Int = 1,
+    ) {
         chars[col] = char
         styles[col] = style.packed
         widths[col] = width.toByte()
@@ -21,7 +28,11 @@ class TerminalLine(val width: Int) {
         widths.fill(1)
     }
 
-    fun insertChars(col: Int, text: String, style: TextStyle) {
+    fun insertChars(
+        col: Int,
+        text: String,
+        style: TextStyle,
+    ) {
         if (col >= width || text.isEmpty()) return
         val insertLen = text.length.coerceAtMost(width - col)
         // Shift existing content right
@@ -40,7 +51,10 @@ class TerminalLine(val width: Int) {
         }
     }
 
-    fun fill(char: Char, style: TextStyle) {
+    fun fill(
+        char: Char,
+        style: TextStyle,
+    ) {
         chars.fill(char)
         styles.fill(style.packed)
         widths.fill(1)

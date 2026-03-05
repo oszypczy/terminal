@@ -4,7 +4,6 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 
 class TerminalBufferTest {
-
     @Test
     fun `buffer initializes with correct dimensions`() {
         val buf = TerminalBuffer(80, 24)

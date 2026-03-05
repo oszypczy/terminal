@@ -28,6 +28,18 @@ A terminal text buffer implementation in Kotlin — the core data structure used
 ./gradlew test
 ```
 
+## Lint
+
+```bash
+./gradlew ktlintCheck
+```
+
+Auto-format:
+
+```bash
+./gradlew ktlintFormat
+```
+
 ## Project Structure
 
 ```

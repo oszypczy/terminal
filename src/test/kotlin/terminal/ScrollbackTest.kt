@@ -4,7 +4,6 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 
 class ScrollbackTest {
-
     @Test
     fun `insertLineAtBottom moves top line to scrollback`() {
         val buf = TerminalBuffer(10, 3, maxScrollbackSize = 100)

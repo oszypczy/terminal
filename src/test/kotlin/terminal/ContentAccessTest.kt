@@ -4,7 +4,6 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 
 class ContentAccessTest {
-
     @Test
     fun `getScreenContent returns all screen lines`() {
         val buf = TerminalBuffer(10, 3)

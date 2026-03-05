@@ -2,19 +2,18 @@ package terminal
 
 @JvmInline
 value class TextStyle(val packed: Int) {
-
     constructor(
         bold: Boolean = false,
         italic: Boolean = false,
         underline: Boolean = false,
         foreground: TerminalColor = TerminalColor.DEFAULT,
-        background: TerminalColor = TerminalColor.DEFAULT
+        background: TerminalColor = TerminalColor.DEFAULT,
     ) : this(
         (if (bold) BOLD_BIT else 0) or
-        (if (italic) ITALIC_BIT else 0) or
-        (if (underline) UNDERLINE_BIT else 0) or
-        (foreground.ordinal shl FG_SHIFT) or
-        (background.ordinal shl BG_SHIFT)
+            (if (italic) ITALIC_BIT else 0) or
+            (if (underline) UNDERLINE_BIT else 0) or
+            (foreground.ordinal shl FG_SHIFT) or
+            (background.ordinal shl BG_SHIFT),
     )
 
     val bold: Boolean get() = packed and BOLD_BIT != 0
