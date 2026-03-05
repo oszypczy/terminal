@@ -9,9 +9,20 @@ class TerminalBuffer(
     private val scrollback: ArrayDeque<TerminalLine> = ArrayDeque()
     private val cursor = CursorPosition(0, 0)
     var currentStyle: TextStyle = TextStyle.DEFAULT
+        private set
 
     val cursorCol: Int get() = cursor.col
     val cursorRow: Int get() = cursor.row
+
+    fun setAttributes(
+        bold: Boolean = currentStyle.bold,
+        italic: Boolean = currentStyle.italic,
+        underline: Boolean = currentStyle.underline,
+        foreground: TerminalColor = currentStyle.foreground,
+        background: TerminalColor = currentStyle.background,
+    ) {
+        currentStyle = TextStyle(bold, italic, underline, foreground, background)
+    }
 
     fun setCursorPosition(
         col: Int,
@@ -32,12 +43,16 @@ class TerminalBuffer(
 
     fun write(text: String) {
         if (text.isEmpty()) return
-        val line = screen[cursor.row]
         for (char in text) {
             val charWidth = charDisplayWidth(char)
-            if (charWidth == 2 && cursor.col >= width - 1) break
-            if (cursor.col >= width) break
+            if (charWidth == 2 && cursor.col >= width - 1) {
+                wrapToNextLine()
+            }
+            if (cursor.col >= width) {
+                wrapToNextLine()
+            }
 
+            val line = screen[cursor.row]
             clearWideCharAt(line, cursor.col)
 
             if (charWidth == 2) {
@@ -46,15 +61,19 @@ class TerminalBuffer(
                     line.setChar(cursor.col + 1, '\u0000', currentStyle, width = 0)
                 }
                 cursor.col += 2
-                if (cursor.col >= width) {
-                    cursor.col = width - 1
-                    break
-                }
             } else {
                 line.setChar(cursor.col, char, currentStyle, width = 1)
-                if (cursor.col == width - 1) break
                 cursor.col++
             }
+        }
+    }
+
+    private fun wrapToNextLine() {
+        cursor.col = 0
+        if (cursor.row < height - 1) {
+            cursor.row++
+        } else {
+            insertLineAtBottom()
         }
     }
 
@@ -75,7 +94,11 @@ class TerminalBuffer(
         if (text.isEmpty()) return
         val line = screen[cursor.row]
         line.insertChars(cursor.col, text, currentStyle)
-        cursor.moveRight(text.length, width - 1)
+        var cellsInserted = 0
+        for (c in text) {
+            cellsInserted += charDisplayWidth(c)
+        }
+        cursor.moveRight(cellsInserted, width - 1)
     }
 
     fun fill(char: Char) {

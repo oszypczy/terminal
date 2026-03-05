@@ -52,7 +52,7 @@ class ScrollbackTest {
     @Test
     fun `getChar and getStyle work for scrollback`() {
         val buf = TerminalBuffer(10, 2, maxScrollbackSize = 100)
-        buf.currentStyle = TextStyle(bold = true)
+        buf.setAttributes(bold = true)
         buf.write("AB")
         buf.insertLineAtBottom()
 

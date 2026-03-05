@@ -22,12 +22,14 @@ class WideCharacterTest {
     }
 
     @Test
-    fun `wide character at last column is not written`() {
+    fun `wide character at last column wraps to next line`() {
         val buf = TerminalBuffer(5, 3)
         buf.setCursorPosition(4, 0)
         buf.write("你")
         assertThat(buf.getCharAt(4, 0)).isEqualTo(' ')
-        assertThat(buf.cursorCol).isEqualTo(4)
+        assertThat(buf.getCharAt(0, 1)).isEqualTo('你')
+        assertThat(buf.cursorCol).isEqualTo(2)
+        assertThat(buf.cursorRow).isEqualTo(1)
     }
 
     @Test

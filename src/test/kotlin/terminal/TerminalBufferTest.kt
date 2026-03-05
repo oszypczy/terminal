@@ -60,7 +60,7 @@ class TerminalBufferTest {
     @Test
     fun `write uses current style`() {
         val buf = TerminalBuffer(10, 3)
-        buf.currentStyle = TextStyle(bold = true, foreground = TerminalColor.RED)
+        buf.setAttributes(bold = true, foreground = TerminalColor.RED)
         buf.write("Hi")
         assertThat(buf.getStyleAt(0, 0).bold).isTrue()
         assertThat(buf.getStyleAt(0, 0).foreground).isEqualTo(TerminalColor.RED)
@@ -68,11 +68,13 @@ class TerminalBufferTest {
     }
 
     @Test
-    fun `write stops at right edge`() {
+    fun `write wraps to next line at right edge`() {
         val buf = TerminalBuffer(5, 3)
         buf.write("HelloWorld")
         assertThat(buf.getLine(0)).isEqualTo("Hello")
-        assertThat(buf.cursorCol).isEqualTo(4)
+        assertThat(buf.getLine(1)).isEqualTo("World")
+        assertThat(buf.cursorCol).isEqualTo(5)
+        assertThat(buf.cursorRow).isEqualTo(1)
     }
 
     @Test
@@ -115,7 +117,7 @@ class TerminalBufferTest {
     fun `fill line with character`() {
         val buf = TerminalBuffer(5, 3)
         buf.setCursorPosition(0, 1)
-        buf.currentStyle = TextStyle(foreground = TerminalColor.GREEN)
+        buf.setAttributes(foreground = TerminalColor.GREEN)
         buf.fill('=')
         assertThat(buf.getLine(1)).isEqualTo("=====")
         assertThat(buf.getStyleAt(0, 1).foreground).isEqualTo(TerminalColor.GREEN)

@@ -34,8 +34,11 @@ class TerminalLine(val width: Int) {
         style: TextStyle,
     ) {
         if (col >= width || text.isEmpty()) return
-        val insertLen = text.length.coerceAtMost(width - col)
-        // Shift existing content right
+        var cellsNeeded = 0
+        for (c in text) {
+            cellsNeeded += charDisplayWidth(c)
+        }
+        val insertLen = cellsNeeded.coerceAtMost(width - col)
         val shiftEnd = width - 1
         val shiftStart = col + insertLen
         for (i in shiftEnd downTo shiftStart) {
@@ -43,11 +46,19 @@ class TerminalLine(val width: Int) {
             styles[i] = styles[i - insertLen]
             widths[i] = widths[i - insertLen]
         }
-        // Insert new characters
-        for (i in 0 until insertLen) {
-            chars[col + i] = text[i]
-            styles[col + i] = style.packed
-            widths[col + i] = 1
+        var pos = col
+        for (c in text) {
+            val cw = charDisplayWidth(c)
+            if (pos + cw > col + insertLen) break
+            chars[pos] = c
+            styles[pos] = style.packed
+            widths[pos] = cw.toByte()
+            if (cw == 2 && pos + 1 < width) {
+                chars[pos + 1] = '\u0000'
+                styles[pos + 1] = style.packed
+                widths[pos + 1] = 0
+            }
+            pos += cw
         }
     }
 
