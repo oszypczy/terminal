@@ -138,4 +138,36 @@ class TerminalBufferTest {
         buf.fill(' ')
         assertThat(buf.getLine(0)).isEqualTo("")
     }
+
+    @Test
+    fun `clearScreen resets screen but preserves scrollback`() {
+        val buf = TerminalBuffer(10, 3, maxScrollbackSize = 100)
+        buf.write("Hello")
+        buf.insertLineAtBottom()
+        buf.setCursorPosition(0, 0)
+        buf.write("World")
+
+        buf.clearScreen()
+
+        assertThat(buf.getScreenContent()).isEqualTo("\n\n")
+        assertThat(buf.cursorCol).isEqualTo(0)
+        assertThat(buf.cursorRow).isEqualTo(0)
+        assertThat(buf.scrollbackSize).isEqualTo(1)
+    }
+
+    @Test
+    fun `clearAll resets everything`() {
+        val buf = TerminalBuffer(10, 3, maxScrollbackSize = 100)
+        buf.write("Hello")
+        buf.insertLineAtBottom()
+        buf.setCursorPosition(0, 0)
+        buf.write("World")
+
+        buf.clearAll()
+
+        assertThat(buf.getScreenContent()).isEqualTo("\n\n")
+        assertThat(buf.scrollbackSize).isEqualTo(0)
+        assertThat(buf.cursorCol).isEqualTo(0)
+        assertThat(buf.cursorRow).isEqualTo(0)
+    }
 }

@@ -38,10 +38,34 @@ class TerminalBuffer(
         if (text.isEmpty()) return
         val line = screen[cursor.row]
         for (char in text) {
+            val charWidth = charDisplayWidth(char)
+            if (charWidth == 2 && cursor.col >= width - 1) break
             if (cursor.col >= width) break
-            line.setChar(cursor.col, char, currentStyle)
-            if (cursor.col == width - 1) break
-            cursor.col++
+
+            clearWideCharAt(line, cursor.col)
+
+            if (charWidth == 2) {
+                line.setChar(cursor.col, char, currentStyle, width = 2)
+                if (cursor.col + 1 < width) {
+                    line.setChar(cursor.col + 1, '\u0000', currentStyle, width = 0)
+                }
+                cursor.col += 2
+                if (cursor.col >= width) { cursor.col = width - 1; break }
+            } else {
+                line.setChar(cursor.col, char, currentStyle, width = 1)
+                if (cursor.col == width - 1) break
+                cursor.col++
+            }
+        }
+    }
+
+    private fun clearWideCharAt(line: TerminalLine, col: Int) {
+        if (col > 0 && line.widthAt(col) == 0) {
+            line.setChar(col - 1, ' ', TextStyle.DEFAULT, width = 1)
+            line.setChar(col, ' ', TextStyle.DEFAULT, width = 1)
+        }
+        if (line.widthAt(col) == 2 && col + 1 < width) {
+            line.setChar(col + 1, ' ', TextStyle.DEFAULT, width = 1)
         }
     }
 
@@ -99,5 +123,45 @@ class TerminalBuffer(
 
     fun getScreenContent(): String {
         return screen.joinToString("\n") { it.toString() }
+    }
+
+    fun clearScreen() {
+        for (line in screen) {
+            line.clear()
+        }
+        cursor.col = 0
+        cursor.row = 0
+    }
+
+    fun clearAll() {
+        clearScreen()
+        scrollback.clear()
+    }
+
+    fun getAllContent(): String {
+        val parts = mutableListOf<String>()
+        for (line in scrollback) {
+            parts.add(line.toString())
+        }
+        for (line in screen) {
+            parts.add(line.toString())
+        }
+        return parts.joinToString("\n")
+    }
+}
+
+fun charDisplayWidth(c: Char): Int {
+    val code = c.code
+    return when {
+        code in 0x4E00..0x9FFF -> 2   // CJK Unified Ideographs
+        code in 0x3400..0x4DBF -> 2   // CJK Extension A
+        code in 0xF900..0xFAFF -> 2   // CJK Compatibility Ideographs
+        code in 0xFF01..0xFF60 -> 2   // Fullwidth Forms
+        code in 0xFFE0..0xFFE6 -> 2   // Fullwidth Signs
+        code in 0x2E80..0x303F -> 2   // CJK Radicals, Kangxi, IDC
+        code in 0xAC00..0xD7AF -> 2   // Hangul Syllables
+        code in 0x3040..0x30FF -> 2   // Hiragana, Katakana
+        code in 0x3100..0x312F -> 2   // Bopomofo
+        else -> 1
     }
 }
