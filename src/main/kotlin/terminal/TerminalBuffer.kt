@@ -14,25 +14,15 @@ class TerminalBuffer(
     val cursorRow: Int get() = cursor.row
 
     fun setCursorPosition(col: Int, row: Int) {
-        cursor.col = col.coerceIn(0, width - 1)
-        cursor.row = row.coerceIn(0, height - 1)
+        cursor.col = col
+        cursor.row = row
+        cursor.clamp(width - 1, height - 1)
     }
 
-    fun moveCursorRight(n: Int) {
-        cursor.col = (cursor.col + n).coerceAtMost(width - 1)
-    }
-
-    fun moveCursorLeft(n: Int) {
-        cursor.col = (cursor.col - n).coerceAtLeast(0)
-    }
-
-    fun moveCursorDown(n: Int) {
-        cursor.row = (cursor.row + n).coerceAtMost(height - 1)
-    }
-
-    fun moveCursorUp(n: Int) {
-        cursor.row = (cursor.row - n).coerceAtLeast(0)
-    }
+    fun moveCursorRight(n: Int) = cursor.moveRight(n, width - 1)
+    fun moveCursorLeft(n: Int) = cursor.moveLeft(n)
+    fun moveCursorDown(n: Int) = cursor.moveDown(n, height - 1)
+    fun moveCursorUp(n: Int) = cursor.moveUp(n)
 
     fun write(text: String) {
         if (text.isEmpty()) return
@@ -73,7 +63,7 @@ class TerminalBuffer(
         if (text.isEmpty()) return
         val line = screen[cursor.row]
         line.insertChars(cursor.col, text, currentStyle)
-        cursor.col = (cursor.col + text.length).coerceAtMost(width - 1)
+        cursor.moveRight(text.length, width - 1)
     }
 
     fun fill(char: Char) {
@@ -170,8 +160,7 @@ class TerminalBuffer(
 
         width = newWidth
         height = newHeight
-        cursor.col = cursor.col.coerceIn(0, width - 1)
-        cursor.row = cursor.row.coerceIn(0, height - 1)
+        cursor.clamp(width - 1, height - 1)
     }
 
     fun getAllContent(): String {
