@@ -138,6 +138,42 @@ class TerminalBuffer(
         scrollback.clear()
     }
 
+    fun resize(newWidth: Int, newHeight: Int) {
+        // Resize width of all lines
+        if (newWidth != width) {
+            for (i in screen.indices) {
+                screen[i] = screen[i].resized(newWidth)
+            }
+            for (i in scrollback.indices) {
+                scrollback[i] = scrollback[i].resized(newWidth)
+            }
+        }
+
+        // Resize height
+        if (newHeight < height) {
+            if (cursor.row >= newHeight) {
+                val rowsToScrollback = cursor.row - newHeight + 1
+                repeat(rowsToScrollback) {
+                    scrollback.addLast(screen.removeFirst())
+                    if (scrollback.size > maxScrollbackSize) scrollback.removeFirst()
+                }
+                cursor.row -= rowsToScrollback
+            }
+            while (screen.size > newHeight) {
+                screen.removeLast()
+            }
+        } else if (newHeight > height) {
+            repeat(newHeight - height) {
+                screen.add(TerminalLine(newWidth))
+            }
+        }
+
+        width = newWidth
+        height = newHeight
+        cursor.col = cursor.col.coerceIn(0, width - 1)
+        cursor.row = cursor.row.coerceIn(0, height - 1)
+    }
+
     fun getAllContent(): String {
         val parts = mutableListOf<String>()
         for (line in scrollback) {

@@ -57,6 +57,24 @@ class TerminalLine(val width: Int) {
         return sb.toString().trimEnd()
     }
 
+    fun resized(newWidth: Int): TerminalLine {
+        val newLine = TerminalLine(newWidth)
+        val copyLen = minOf(width, newWidth)
+        for (i in 0 until copyLen) {
+            newLine.chars[i] = chars[i]
+            newLine.styles[i] = styles[i]
+            newLine.widths[i] = widths[i]
+        }
+        // Check for split wide char at boundary: primary cell is last col,
+        // meaning its continuation would be outside the new width
+        if (newWidth in 1 until width) {
+            if (newLine.widths[newWidth - 1].toInt() == 2) {
+                newLine.setChar(newWidth - 1, ' ', TextStyle.DEFAULT, width = 1)
+            }
+        }
+        return newLine
+    }
+
     /** Returns full line content including trailing spaces */
     fun toFullString(): String {
         val sb = StringBuilder()
