@@ -85,6 +85,18 @@ class TerminalBuffer(
         } else null
     }
 
+    val scrollbackSize: Int get() = scrollback.size
+
+    fun insertLineAtBottom() {
+        val topLine = screen.removeFirst()
+        scrollback.addLast(topLine)
+        if (scrollback.size > maxScrollbackSize) {
+            scrollback.removeFirst()
+        }
+        screen.add(TerminalLine(width))
+        cursor.col = 0
+    }
+
     fun getScreenContent(): String {
         return screen.joinToString("\n") { it.toString() }
     }
